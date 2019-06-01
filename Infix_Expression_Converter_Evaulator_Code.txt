@@ -1,0 +1,281 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+#define MAX 100
+
+
+/******** EVALUATION STACK ********/
+class stack_eval
+{
+private:
+	double item[MAX];
+	int top;
+public:
+	stack_eval() { top = -1; }
+	void push(double data);
+	double pop();
+	int is_empty();
+	int is_full();
+	void print();
+	double item_top() { return item[top]; }
+}; //stack_conv
+
+int stack_eval::is_empty()
+{
+	if (top == -1)
+		return 1;
+	return 0;
+}
+
+int stack_eval::is_full()
+{
+	if (top == MAX - 1)
+		return 1;
+	return 0;
+}
+
+void stack_eval::push(double data)
+{
+	if (is_full()) {
+		cout << "stack is overflow";
+		exit(0);
+	}
+
+	top++;
+	item[top] = data;
+}
+
+
+double stack_eval::pop()
+{
+	if (is_empty()) {
+		cout << "Stack is underflow";
+		exit(0);
+	}
+	double temp = item[top];
+	top--;
+	return temp;
+}
+
+void stack_eval::print()
+{
+	for (int i = 0; i <= top; i++)
+	{
+		cout << item[i] << " ";
+	}
+	cout << endl;
+}
+
+/******** CONVERSION STACK ********/
+
+class stack_conv
+{
+private:
+	char item[MAX];
+	int top;
+public:
+	stack_conv() { top = -1; }
+	void push1(char symbol);
+	char pop1();
+	int is_empty();
+	int is_full();
+	void print();
+	char item_top() { return item[top]; }
+};
+
+int stack_conv::is_empty()
+{
+	if (top == -1)
+		return 1;
+	return 0;
+}
+
+int stack_conv::is_full()
+{
+	if (top == MAX - 1)
+		return 1;
+	return 0;
+}
+
+void stack_conv::push1(char symbol)
+{
+	if (is_full()) {
+		cout << "stack is overflow";
+		exit(0);
+	}
+
+	top++;
+
+	item[top] = symbol;
+}
+
+char stack_conv::pop1()
+{
+	if (is_empty()) {
+		cout << "Stack is underflow";
+		exit(0);
+	}
+	char temp = item[top];
+	top--;
+	return temp;
+}
+
+void stack_conv::print()
+{
+	for (int i = 0; i <= top; i++)
+	{
+		cout << item[i] << " ";
+	}
+	cout << endl;
+}
+
+/******* PRECEDENCE FUNCTION *******/
+int precedence(char data) {
+	switch (data) {
+	case '+':
+	case '-':
+		return 1;
+		break;
+	case '*':
+	case '/':
+		return 2;
+		break;
+	case '^':
+		return 3;
+		break;
+	
+	default:
+	return -1;
+	break;
+	}
+}
+
+
+
+int main () {
+	stack_eval s;
+	stack_conv sc;
+	string exp,postfix_exp;
+	double result;
+
+	cout << "Please Enter Your Expression: ";
+	getline(cin, exp);
+	
+	/****** Conversion of INFIX to POSTFIX expression *****/
+
+	sc.push1('('); // ASCII of 40 = ( 
+	exp += ')';
+	for ( int i=0 ; i < exp.size() ; i++)
+	{
+		if (exp[i] >= 48 && exp[i] <= 57) // numbers  -- operands
+		{
+			postfix_exp += exp[i];
+		}
+		else if (exp[i] == '(') // 40 = (
+		{
+			sc.push1('(');
+		}
+		
+		else if (exp[i] == ')') // 41 = )
+		{
+			while (!sc.is_empty() && sc.item_top() != '(') // (
+			{
+				postfix_exp += sc.item_top(); // +
+				sc.pop1();
+			
+			}
+			if (!sc.is_empty() && sc.item_top() != '(') //(
+			{
+				cout << "invalid Expression";
+				return -1;
+			}
+			else
+			{
+				sc.pop1();
+			}
+
+		}
+		else if (exp[i] >= 42 && exp[i] <= 47) //symbols . . operators , ASCII from 42 to 47 Operators
+		{
+			
+			while (!sc.is_empty())
+			{
+				if (precedence(exp[i]) <= precedence(sc.item_top()))
+				{
+					postfix_exp += sc.item_top();
+					sc.pop1();
+				}
+				else
+				{
+					break;
+				}
+			
+			}
+			sc.push1(exp[i]);
+		}
+		
+		cout << "stack now has: ";  sc.print();
+		//cout << "Expression Postfix: " << postfix_exp << endl;
+	}
+	while (!sc.is_empty())
+	{
+		postfix_exp += sc.item_top();
+		sc.pop1();
+	}
+
+	
+	/******** Evaluation of POSTFIX expression *******/
+
+	for (int i = 0; i < postfix_exp.size(); i++)
+	{
+		if (postfix_exp[i] >= 48 && postfix_exp[i] <= 57)// 0 1 2 3 4 5 6 7 8 9 ( 48 to 57 )
+		{
+			s.push(postfix_exp[i]- '0');
+		}
+		else
+		{
+			//double op1 = (double)s.pop() - 48; // ASCII FROM CHAR TO NUMBERS (48 to 57)
+			//double op2 = (double)s.pop() - 48;
+			double op1 = s.pop();
+			double op2 = s.pop();
+			switch (postfix_exp[i] )
+			{
+				case '*':
+					result = op2 * op1;
+					s.push(result);
+					break;
+				case '/':
+					result = op2 / op1;
+					s.push(result);
+					break;
+				case '+':
+					result = op2 + op1;
+					s.push(result);
+					break;
+				case '-':
+					result = op2 - op1;
+					s.push(result);
+					break;
+				default:
+					result = 0;
+					s.push(result);
+			}//switch
+
+		}//else
+	}//for loop
+
+	//s.print();
+	//	cout << "Result: " << char_result;
+	//cout <<"result from switch : "<<  result <<endl;
+	
+	result = s.pop();
+	cout << "----------------------------------------------- " << endl;
+	exp.pop_back();
+	cout << "Infix Expression : " << exp<< endl;
+	cout << "Postfix Expression : " << postfix_exp << endl;
+	cout << "Expression Evaluation : " << result << endl;
+
+	system("pause");
+	return 0;
+}
